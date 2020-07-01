@@ -14,6 +14,8 @@ plt.title("Sample Wav")
 # display the plot
 plt.show()
 
+#hi
+
 #song = AudioSegment.from_mp3("fma_small/000/000002.mp3")
 #song = song.set_channels(1)
 #song.export("file2.wav", format="wav")
