@@ -15,6 +15,7 @@ plt.title("Sample Wav")
 plt.show()
 
 #hi
+#Nicole was here
 
 #song = AudioSegment.from_mp3("fma_small/000/000002.mp3")
 #song = song.set_channels(1)
