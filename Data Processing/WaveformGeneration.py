@@ -1,6 +1,3 @@
-from scipy.io.wavfile import read
-from scipy import signal
-import matplotlib.pyplot as plt
 from pydub import AudioSegment
 import os
 
