@@ -45,9 +45,141 @@ print(tracks[:3])
 #Select small subset
 small = tracks[tracks['set.1'] == 'small']
 small.shape
+print(small[:3])
 
 print('{} top-level genres'.format(len(genres['top_level'].unique())))
 genres.reindex(genres['top_level'].unique()).sort_values('#tracks',ascending=False)
 
 genres.sort_values('#tracks').head(10)
+
+#Create empty numpy array 
+labels = np.zeros((8000,10))
+
+# 1. Populate first column with TrackID
+labels[:,0] = small['Unnamed: 0'][0:]
+
+################################################################################
+
+# 2. Populate following columns with Top-Level Genres
+characters_to_remove = '[ ]'
+j = 0 
+n = 0 
+for i in range (0,len(small['track.8'])):
+
+  #Handle indices that do not exist
+  try:
+    contents = small['track.8'][i]
+  except KeyError as e:
+    pass
+  
+  #Remove [] from string 
+  for character in characters_to_remove:
+    contents = contents.replace(character, "")
+  
+  #Handle cases where ] wasn't removed
+  if ']' in contents:
+    contents = contents.replace(']', "")
+  
+  #Check if there are multiple numbers in contents
+  if ',' in contents:
+
+    #Handles cases with two numbers
+    if contents.count(',') == 1:
+      j+=1
+      idx = contents.find(',')
+      first_num = contents[0:idx]
+      second_num = contents[idx+1:]
+      labels[i,1] = int(first_num)
+      labels[i,2] = int(second_num)
+    
+    #Handles cases with more than two numbers
+    elif contents.count(',') > 1:
+      cnt = 1
+      j+= 1
+      n+=1
+      while True:
+        idx = contents.find(',')
+        num = contents[0:idx]
+        labels[i,cnt] = int(num)
+        contents = contents[idx+1:]
+        if contents.count(',') >= 1:
+          cnt += 1
+        else:
+          labels[i,cnt+1] = int(contents)
+          break
+
+  #Cases where there is only one number 
+  else:
+    labels[i,1] = int(contents)
+
+print('There are', j, 'incidences where the "top-level genre" of a song is more than one genre')
+print('There are', n, 'incidences where the "top-level genre" of a song is more than two genres')
+
+#Double check that array has all information
+k=0
+l=0
+for i in range (0,len(small['track.8'])):
+  if labels[i,3] != 0:
+    k += 1
+  if labels[i,2] != 0:
+    l += 1 
+if l==j and k==n:
+  print('The array containts all the necessary information!')
+
+#3. Populate final columns with All Genres
+
+for i in range (0,len(small['track.9'])):
+
+  #Handle indices that do not exist
+  try:
+    contents = small['track.9'][i]
+  except KeyError as e:
+    pass
+  
+  #Remove [] from string 
+  for character in characters_to_remove:
+    contents = contents.replace(character, "")
+  
+  #Handle cases where ] wasn't removed
+  if ']' in contents:
+    contents = contents.replace(']', "")
+
+  #Check if there are multiple numbers in contents
+  if ',' in contents:
+
+    #Handles cases with two numbers
+    if contents.count(',') == 1:
+      idx = contents.find(',')
+      first_num = contents[0:idx]
+      second_num = contents[idx+1:]
+      labels[i,5] = int(first_num)
+      labels[i,6] = int(second_num)
+    
+    #Handles cases with more than two numbers
+    elif contents.count(',') > 1:
+      cnt = 5
+      while True:
+        idx = contents.find(',')
+        num = contents[0:idx]
+        labels[i,cnt] = int(num)
+        contents = contents[idx+1:]
+        if contents.count(',') >= 1:
+          cnt += 1
+        else:
+          labels[i,cnt+1] = int(contents)
+          break
+
+  #Cases where there is only one number 
+  else:
+    labels[i,5] = int(contents)
+
+print(labels[1:50])
+
+#Convert numpy array to dataframe
+df = pd.DataFrame(data=labels, index=None, columns=["TrackID", "Top-Level Genre:1", "Top-Level Genre:2", "Top-Level Genre:3", 
+                                                    "Top-Level Genre:4", "All Genres:1", "All Genres:2", "All Genres:3", "All Genres:4",
+                                                    "All Genres:5"])
+pd.set_option('display.max_columns', None)
+pd.set_option("max_rows", None)
+df
 
