@@ -175,6 +175,21 @@ for i in range (0,len(small['track.9'])):
 
 print(labels[1:50])
 
+#Create dict for Genre IDs
+genre_IDs = np.unique(labels[:,1:], return_index=False, return_inverse=False, return_counts=False, axis=None)
+genre_IDs = genre_IDs[1:]
+
+genre_names = []
+for i in range (0,len(genres['title'])):
+  if genres['genre_id'][i] in genre_IDs:
+    genre_names += [genres['title'][i]]
+
+genres_dict = {}
+for A, B in zip(genre_IDs, genre_names):
+    genres_dict[A] = B
+
+print(genres_dict)
+
 #Convert numpy array to dataframe
 df = pd.DataFrame(data=labels, index=None, columns=["TrackID", "Top-Level Genre:1", "Top-Level Genre:2", "Top-Level Genre:3", 
                                                     "Top-Level Genre:4", "All Genres:1", "All Genres:2", "All Genres:3", "All Genres:4",
