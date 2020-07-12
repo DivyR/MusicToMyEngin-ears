@@ -1,6 +1,7 @@
 import split_folders
 import os
 import numpy as np
+import torch
 
 
 def split_into_tvt(inPath, outPath=None, proportions=(0.7, 0.15, 0.15)):
@@ -13,27 +14,40 @@ def split_into_tvt(inPath, outPath=None, proportions=(0.7, 0.15, 0.15)):
 def produce_datasets(path):
     """Assumes that the path is a train, val, or test folder"""
     # import all images as numpy array into a list
-    return [
-        np.loadtxt("{}{}/{}".format(path, folder, file))
-        for folder in os.listdir(path)
-        for file in os.listdir(path + folder)
-    ]
+    data, labels = [], []
+    for folder in os.listdir(path):
+        for file in os.listdir(path + folder):
+            data.append(np.loadtxt("{}{}/{}".format(path, folder, file)))
+        label = int(float(folder))
+        labels += [np.array(label) for _ in range(len(os.listdir(path + folder)))]
+    return torch.tensor(data), torch.tensor(labels)
 
 
 def load_data(path, batchSize):
     """path is a directory containing train, val, and test folders"""
 
-    # get datasets
-    trainSet = produce_datasets(path + "train/")
-    valSet = produce_datasets(path + "val/")
-    testSet = produce_datasets(path + "test/")
+    # get data and labels as tensors
+    print("1")
+    trainData, trainLabels = produce_datasets(path + "train/")
+    print("2")
+    valData, valLabels = produce_datasets(path + "val/")
+    print("3")
+    testData, testLabels = produce_datasets(path + "test/")
+
+    print("4")
+    trainSet = torch.utils.data.TensorDataset(trainData, trainLabels)
+    valSet = torch.utils.data.TensorDataset(valData, valLabels)
+    testSet = torch.utils.data.TensorDataset(testData, testLabels)
 
     # loader generation
     params = {"batch_size": batchsize, "shuffle": True, "num_workers": 1}
 
+    print("5")
     train_loader = torch.utils.data.DataLoader(trainSet, **params)
+    print("6")
     val_loader = torch.utils.data.DataLoader(valSet, **params)
     test_loader = torch.utils.data.DataLoader(testSet, **params)
+
     return train_loader, val_loader, test_loader
 
 
