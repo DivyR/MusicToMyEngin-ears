@@ -2,6 +2,7 @@ import split_folders
 import os
 import numpy as np
 import torch
+import pickle
 
 
 def split_into_tvt(inPath, outPath=None, proportions=(0.7, 0.15, 0.15)):
@@ -31,9 +32,8 @@ def produce_datasets(path):
     return torch.tensor(labels), torch.tensor(data)
 
 
-def load_data(path, batchSize):
+def pickle_datasets(path):
     """path is a directory containing train, val, and test folders"""
-
     # get data and labels as tensors
     trainData, trainLabels = produce_datasets(path + "train/")
     valData, valLabels = produce_datasets(path + "val/")
@@ -43,6 +43,18 @@ def load_data(path, batchSize):
     valSet = torch.utils.data.TensorDataset(valData, valLabels)
     testSet = torch.utils.data.TensorDataset(testData, testLabels)
 
+    pickle.dump(trainSet, open("trainSet.pkl", "ab"))
+    pickle.dump(valSet, open("valSet.pkl", "ab"))
+    pickle.dump(testSet, open("testSet.pkl", "ab"))
+    print("Pickled Data")
+
+
+def load_data(pathTrain, pathVal, pathTest, batchSize):
+
+    # load pickles
+    trainSet = pickle.load(open("../Data/trainLoader.pkl", "rb"))
+    valSet = pickle.load(open("../Data/valLoader.pkl", "rb"))
+    testSet = pickle.load(open("../Data/valLoader.pkl", "rb"))
     # loader generation
     params = {"batch_size": batchSize, "shuffle": True, "num_workers": 1}
 
@@ -53,6 +65,12 @@ def load_data(path, batchSize):
     return train_loader, val_loader, test_loader
 
 
+def GenerateLoaders(trainLoader, valLoader, testLoader):
+    pickle.dump(trainLoader, open("trainLoader.pkl", "ab"))
+    pickle.dump(valLoader, open("valLoader.pkl", "ab"))
+    pickle.dump(testLoader, open("testLoader.pkl", "ab"))
+
+
 if __name__ == "__main__":
     path = "./Data/Dataset/"
-    train_loader, _, _ = load_data(path, 100)
+    pickle_datasets(path)
