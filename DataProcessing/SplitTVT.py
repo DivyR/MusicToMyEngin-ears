@@ -16,11 +16,15 @@ def produce_datasets(path):
     # import all images as numpy array into a list
     data, labels = [], []
     for folder in os.listdir(path):
-        for file in os.listdir(path + folder):
-            data.append(np.loadtxt("{}{}/{}".format(path, folder, file)))
+        data += [
+            np.loadtxt("{}{}/{}".format(path, folder, file))[:, :1292]
+            for file in os.listdir(path + folder)
+        ]
+
         label = int(float(folder))
-        labels += [np.array(label) for _ in range(len(os.listdir(path + folder)))]
-    return torch.tensor(data), torch.tensor(labels)
+        labels += [np.array([label]) for _ in range(len(os.listdir(path + folder)))]
+
+    return torch.tensor(labels), torch.tensor(data)
 
 
 def load_data(path, batchSize):
@@ -40,7 +44,7 @@ def load_data(path, batchSize):
     testSet = torch.utils.data.TensorDataset(testData, testLabels)
 
     # loader generation
-    params = {"batch_size": batchsize, "shuffle": True, "num_workers": 1}
+    params = {"batch_size": batchSize, "shuffle": True, "num_workers": 1}
 
     print("5")
     train_loader = torch.utils.data.DataLoader(trainSet, **params)
