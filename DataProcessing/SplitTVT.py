@@ -15,16 +15,28 @@ def produce_datasets(path):
     # import all images as numpy array into a list
     return [
         np.loadtxt("{}{}/{}".format(path, folder, file))
-        for file in os.listdir(path + folder)
         for folder in os.listdir(path)
+        for file in os.listdir(path + folder)
     ]
 
 
 def load_data(path, batchSize):
     """path is a directory containing train, val, and test folders"""
+
+    # get datasets
     trainSet = produce_datasets(path + "train/")
+    valSet = produce_datasets(path + "val/")
+    testSet = produce_datasets(path + "test/")
+
+    # loader generation
+    params = {"batch_size": batchsize, "shuffle": True, "num_workers": 1}
+
+    train_loader = torch.utils.data.DataLoader(trainSet, **params)
+    val_loader = torch.utils.data.DataLoader(valSet, **params)
+    test_loader = torch.utils.data.DataLoader(testSet, **params)
+    return train_loader, val_loader, test_loader
 
 
 if __name__ == "__main__":
     path = "./Data/Dataset/"
-    load_data(path, 32)
+    train_loader, _, _ = load_data(path, 100)
