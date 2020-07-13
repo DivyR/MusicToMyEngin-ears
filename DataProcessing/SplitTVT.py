@@ -43,18 +43,19 @@ def pickle_datasets(path):
     valSet = torch.utils.data.TensorDataset(valData, valLabels)
     testSet = torch.utils.data.TensorDataset(testData, testLabels)
 
-    pickle.dump(trainSet, open("trainSet.pkl", "ab"))
-    pickle.dump(valSet, open("valSet.pkl", "ab"))
-    pickle.dump(testSet, open("testSet.pkl", "ab"))
+    pickle.dump(trainSet, open("trainSet1.pkl", "ab"))
+    pickle.dump(valSet, open("valSet1.pkl", "ab"))
+    pickle.dump(testSet, open("testSet1.pkl", "ab"))
+
     print("Pickled Data")
 
 
 def load_data(pathTrain, pathVal, pathTest, batchSize):
 
     # load pickles
-    trainSet = pickle.load(open("../Data/trainLoader.pkl", "rb"))
-    valSet = pickle.load(open("../Data/valLoader.pkl", "rb"))
-    testSet = pickle.load(open("../Data/valLoader.pkl", "rb"))
+    trainSet = pickle.load(open(pathTrain, "rb"))
+    valSet = pickle.load(open(pathVal, "rb"))
+    testSet = pickle.load(open(pathTest, "rb"))
     # loader generation
     params = {"batch_size": batchSize, "shuffle": True, "num_workers": 1}
 

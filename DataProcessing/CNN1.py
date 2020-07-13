@@ -10,6 +10,7 @@ import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 from SplitTVT import load_data
 
+
 def plot_training_curve(path):
     """ Plots the training curve for a model run, given the csv files
     containing the train/validation error/loss.
@@ -18,16 +19,19 @@ def plot_training_curve(path):
         path: The base path of the csv files produced during training
     """
     import matplotlib.pyplot as plt
+
     train_err = np.loadtxt("{}_train_acc.csv".format(path))
     val_err = np.loadtxt("{}_val_acc.csv".format(path))
     plt.title("Train vs Validation Error")
-    n = len(train_err) # number of epochs
-    plt.plot(range(1,n+1), train_err, label="Train")
-    plt.plot(range(1,n+1), val_err, label="Validation")
+    n = len(train_err)  # number of epochs
+    plt.plot(range(1, n + 1), train_err, label="Train")
+    plt.plot(range(1, n + 1), val_err, label="Validation")
     plt.xlabel("Epoch")
     plt.ylabel("Error")
-    plt.legend(loc='best')
+    plt.legend(loc="best")
     plt.show()
+
+
 def get_model_name(name, batch_size, learning_rate, epoch):
     """ Generate a name for the model consisting of all the hyperparameter values
 
@@ -36,11 +40,11 @@ def get_model_name(name, batch_size, learning_rate, epoch):
     Returns:
         path: A string with the hyperparameter name and value concatenated
     """
-    path = "model_{0}_bs{1}_lr{2}_epoch{3}".format(name,
-                                                   batch_size,
-                                                   learning_rate,
-                                                   epoch)
+    path = "model_{0}_bs{1}_lr{2}_epoch{3}".format(
+        name, batch_size, learning_rate, epoch
+    )
     return path
+
 
 class Network(nn.Module):
     def __init__(self):
@@ -57,8 +61,9 @@ class Network(nn.Module):
         x = x.view(-1, 12460)
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
-        #x = x.squeeze(1) # Flatten to [batch_size]
+        # x = x.squeeze(1) # Flatten to [batch_size]
         return x
+
 
 def train(model, train_loader, val_loader, batch_size, learn_rate, num_epochs=20):
 
@@ -69,20 +74,22 @@ def train(model, train_loader, val_loader, batch_size, learn_rate, num_epochs=20
     train_acc, val_acc = [], []
 
     # training
-    print ("Training Started...")
-    n = 0 # the number of iterations
+    print("Training Started...")
+    n = 0  # the number of iterations
     model = model.float()
     for epoch in range(num_epochs):
         for labels, imgs in iter(train_loader):
             if use_cuda and torch.cuda.is_available():
-              imgs = imgs.cuda()
-              labels = labels.cuda()
-            out = model(imgs.float())             # forward pass
+                imgs = imgs.cuda()
+                labels = labels.cuda()
+            out = model(imgs.float())  # forward pass
             labels = labels.squeeze(1)
-            loss = criterion(out, labels) # compute the total loss
-            loss.backward()               # backward pass (compute parameter updates)
-            optimizer.step()              # make the updates for each parameter
-            optimizer.zero_grad()         # a clean up step for PyTorch
+            print(out)
+            print(labels)
+            loss = criterion(out, labels)  # compute the total loss
+            loss.backward()  # backward pass (compute parameter updates)
+            optimizer.step()  # make the updates for each parameter
+            optimizer.zero_grad()  # a clean up step for PyTorch
             n += 1
 
         # track accuracy
@@ -102,19 +109,21 @@ def get_accuracy(model, data_loader):
     model = model.float()
     for labels, imgs in data_loader:
         if use_cuda and torch.cuda.is_available():
-          imgs = imgs.cuda()
-          labels = labels.cuda()
+            imgs = imgs.cuda()
+            labels = labels.cuda()
         output = model(imgs.float())
-        #select index with maximum prediction score
+        # select index with maximum prediction score
         pred = output.max(1, keepdim=True)[1]
         correct += pred.eq(labels.view_as(pred)).sum().item()
         total += imgs.shape[0]
     return correct / total
 
 
-use_cuda = True
+use_cuda = False
 print("1")
-trainload, valload, testload = load_data("Data/trainSet.pkl", "Data/valSet.pkl","Data/testSet.pkl", 1)
+trainload, valload, testload = load_data(
+    "Data/trainSet.pkl", "Data/valSet.pkl", "Data/testSet.pkl", 512
+)
 print("2")
 net = Network()
 train(net, trainload, valload, 32, 0.0001)
