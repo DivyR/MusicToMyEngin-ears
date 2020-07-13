@@ -5,7 +5,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import torchvision
-from torch.utils.data.sampler import SubsetRandomSampler
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 from SplitTVT import load_data
@@ -50,15 +49,19 @@ class Network(nn.Module):
     def __init__(self):
         super(Network, self).__init__()
         self.name = "net"
-        self.conv1 = nn.Conv2d(1, 5, 5)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.fc1 = nn.Linear(12460, 32)
-        self.fc2 = nn.Linear(32, 7)
+        self.conv1 = nn.Conv2d(1, 5, 3)
+        self.pool = nn.AvgPool2d(2)
+        self.batch = nn.BatchNorm2d(5)
+        self.batch2 = nn.BatchNorm2d(10)
+        self.conv2 = nn.Conv2d(5, 10, 3)
+        self.fc1 = nn.Linear(3110, 49)
+        self.fc2 = nn.Linear(49, 7)
 
     def forward(self, x):
         x = x.unsqueeze(1)
-        x = self.pool(F.relu(self.conv1(x)))
-        x = x.view(-1, 12460)
+        x = self.pool(F.relu(self.batch(self.conv1(x))))
+        x = self.pool(F.relu(self.batch2(self.conv2(x))))
+        x = x.view(-1, 3110)
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
         # x = x.squeeze(1) # Flatten to [batch_size]
@@ -72,7 +75,6 @@ def train(model, train_loader, val_loader, batch_size, learn_rate, num_epochs=20
     optimizer = optim.Adam(model.parameters(), lr=learn_rate)
 
     train_acc, val_acc = [], []
-
     # training
     print("Training Started...")
     n = 0  # the number of iterations
@@ -97,7 +99,8 @@ def train(model, train_loader, val_loader, batch_size, learn_rate, num_epochs=20
         val_acc.append(get_accuracy(model, val_loader))
         print(epoch, train_acc[-1], val_acc[-1])
         model_path = get_model_name(model.name, batch_size, learn_rate, epoch)
-        torch.save(model.state_dict(), model_path)
+        if val_acc[-1] == max(val_acc):  # only save in this case!!
+            torch.save(model.state_dict(), model_path)
     np.savetxt("{}_train_acc.csv".format(model_path), train_acc)
     np.savetxt("{}_val_acc.csv".format(model_path), val_acc)
     return train_acc, val_acc
@@ -119,11 +122,9 @@ def get_accuracy(model, data_loader):
     return correct / total
 
 
-use_cuda = False
-print("1")
+use_cuda = True
 trainload, valload, testload = load_data(
-    "Data/trainSet.pkl", "Data/valSet.pkl", "Data/testSet.pkl", 512
+    "Data/trainSet.pkl", "Data/valSet.pkl", "Data/testSet.pkl", 128
 )
-print("2")
-net = Network()
-train(net, trainload, valload, 32, 0.0001)
+netv1 = Network()
+train(netv1, trainload, valload, 128, 0.01)
