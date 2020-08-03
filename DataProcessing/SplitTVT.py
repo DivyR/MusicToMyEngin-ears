@@ -5,9 +5,8 @@ import torch
 import pickle
 
 
-
-
-def split_into_tvt(inPath, outPath=None, proportions=(0.7, 0.15, 0.15)):
+def split_into_tvt(inPath, proportions, outPath=None):
+    """ proportions should be a list [a, b, c] where a+b+c = 1 """
     if outPath is None:
         outPath = inPath
     split_folders.ratio(input=inPath, output=outPath, seed=22, ratio=proportions)
@@ -68,12 +67,5 @@ def load_data(pathTrain, pathVal, pathTest, batchSize):
     return train_loader, val_loader, test_loader
 
 
-def GenerateLoaders(trainLoader, valLoader, testLoader):
-    pickle.dump(trainLoader, open("trainLoader.pkl", "ab"))
-    pickle.dump(valLoader, open("valLoader.pkl", "ab"))
-    pickle.dump(testLoader, open("testLoader.pkl", "ab"))
-
-
 if __name__ == "__main__":
-    path = "./Data/Dataset/"
-    pickle_datasets(path)
+    pass
