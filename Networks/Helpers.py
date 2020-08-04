@@ -2,6 +2,7 @@ import time
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
 
 torch.manual_seed(22)
 
@@ -59,12 +60,14 @@ def get_accuracy(model, data, criterion, batch_size=32):
     loss = 0.0
     for i, batch in enumerate(data):
         labels, mfccs = batch
+        mfccs = mfccs.float()
+        labels = labels.squeeze(1)
         output = model(mfccs)
 
         loss += criterion(output, labels).item()
 
         pred = output.max(1, keepdim=True)[1]
-        correct += pred.eq(batch.labels.view_as(pred)).sum().item()
+        correct += pred.eq(labels.view_as(pred)).sum().item()
         total += labels.shape[0]
     return correct / total, loss / (i + 1)
 
@@ -84,9 +87,8 @@ def train(model, train, valid, learning_rate, batch_size, num_epochs=30):
     for epoch in range(num_epochs):
         for labels, mfccs in train:
             optimizer.zero_grad()
-
             output = model(mfccs.float())
-            loss = criterion(output, labels)
+            loss = criterion(output, labels.squeeze(1))
             loss.backward()
             optimizer.step()
 
