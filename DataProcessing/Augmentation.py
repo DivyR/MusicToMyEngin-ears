@@ -13,7 +13,8 @@ def change_tempo(currPath, newPath, tempo):
 
 def aug_tempo(pathsToFolders, initialNumber, tempo):
     for path in pathsToFolders:
-        for i, file in enumerate(os.listdir(path)):
+        files = sorted(os.listdir(path))[:100]
+        for i, file in enumerate(files):
             fileSplit = file.split(".")
             currPath = path + "/" + file
             newPath = (
@@ -38,6 +39,5 @@ if __name__ == "__main__":
         "rock",
     ]
     pathsToFolders = [keyPath + e for e in appends]
-    initNumber = 100
-    tempo = 1.1
-    aug_tempo(pathsToFolders, initNumber, tempo)
+    aug_tempo(pathsToFolders, initialNumber=100, tempo=1.1)
+    aug_tempo(pathsToFolders, initialNumber=200, tempo=0.9)
