@@ -127,3 +127,62 @@ def train(model, train, valid, learning_rate, batch_size, num_epochs=30, save=Tr
     elapsedTime = endTime - startTime
     print("Total time elapsed: {:.2f} seconds".format(elapsedTime))
     print("Finished Training")
+
+
+def train_sgd(
+    model, train, valid, learning_rate, momentum, batch_size, num_epochs=30, save=True
+):
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum)
+
+    # accuracy tracking
+    train_acc, valid_acc = [], []
+    train_loss, valid_loss = [], []
+
+    # training network
+    print("Training Started...")
+    startTime = time.time()
+
+    for epoch in range(num_epochs):
+        for labels, mfccs in train:
+            optimizer.zero_grad()
+            output = model(mfccs.float())
+            loss = criterion(output, labels.squeeze(1))
+            loss.backward()
+            optimizer.step()
+
+        tacc, tloss = get_accuracy(model, train, criterion, batch_size=batch_size)
+        vacc, vloss = get_accuracy(model, valid, criterion, batch_size=batch_size)
+
+        train_acc.append(tacc)
+        valid_acc.append(vacc)
+        train_loss.append(tloss)
+        valid_loss.append(vloss)
+
+        print(
+            (
+                "Epoch {}: Train acc: {}, Train loss: {} | "
+                + "Validation acc: {}, Validation loss: {}"
+            ).format(
+                epoch + 1, train_acc[-1], train_loss[-1], valid_acc[-1], valid_loss[-1]
+            )
+        )
+        if save:
+            if valid_loss[-1] == min(valid_loss) or valid_acc[-1] == max(
+                valid_acc
+            ):  # only save state in this case!!
+                modelPath = get_model_name(
+                    model.name, batch_size, learning_rate, epoch + 1
+                )
+                torch.save(model.state_dict(), modelPath)
+
+    modelPath = get_model_name(model.name, batch_size, learning_rate, epoch + 1)
+    np.savetxt("{}_train_acc.csv".format(modelPath), train_acc)
+    np.savetxt("{}_val_acc.csv".format(modelPath), valid_acc)
+    np.savetxt("{}_train_loss.csv".format(modelPath), train_loss)
+    np.savetxt("{}_val_loss.csv".format(modelPath), valid_loss)
+
+    endTime = time.time()
+    elapsedTime = endTime - startTime
+    print("Total time elapsed: {:.2f} seconds".format(elapsedTime))
+    print("Finished Training")
