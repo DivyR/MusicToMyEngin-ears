@@ -72,7 +72,7 @@ def get_accuracy(model, data, criterion, batch_size=32):
     return correct / total, loss / (i + 1)
 
 
-def train(model, train, valid, learning_rate, batch_size, num_epochs=30):
+def train(model, train, valid, learning_rate, batch_size, num_epochs=30, save=True):
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
@@ -108,17 +108,20 @@ def train(model, train, valid, learning_rate, batch_size, num_epochs=30):
                 epoch + 1, train_acc[-1], train_loss[-1], valid_acc[-1], valid_loss[-1]
             )
         )
+        if save:
+            if valid_loss[-1] == min(valid_loss) or valid_acc[-1] == max(
+                valid_acc
+            ):  # only save state in this case!!
+                modelPath = get_model_name(
+                    model.name, batch_size, learning_rate, epoch + 1
+                )
+                torch.save(model.state_dict(), modelPath)
 
-        modelPath = get_model_name(model.name, batch_size, learning_rate, epoch + 1)
-        np.savetxt("{}_train_acc.csv".format(modelPath), train_acc)
-        np.savetxt("{}_val_acc.csv".format(modelPath), valid_acc)
-        np.savetxt("{}_train_loss.csv".format(modelPath), train_loss)
-        np.savetxt("{}_val_loss.csv".format(modelPath), valid_loss)
-
-        if valid_loss[-1] == min(valid_loss) or valid_acc[-1] == max(
-            valid_acc
-        ):  # only save state in this case!!
-            torch.save(model.state_dict(), modelPath)
+    modelPath = get_model_name(model.name, batch_size, learning_rate, epoch + 1)
+    np.savetxt("{}_train_acc.csv".format(modelPath), train_acc)
+    np.savetxt("{}_val_acc.csv".format(modelPath), valid_acc)
+    np.savetxt("{}_train_loss.csv".format(modelPath), train_loss)
+    np.savetxt("{}_val_loss.csv".format(modelPath), valid_loss)
 
     endTime = time.time()
     elapsedTime = endTime - startTime
