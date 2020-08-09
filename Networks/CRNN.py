@@ -139,7 +139,7 @@ class CRNN3(nn.Module):
         x = self.maxpool(x)  # [batch, 25, 9, 106]
         x = F.relu(self.conv2(x))  # [batch, 50, 6, 104]
         x = self.maxpool(x)  # [batch, 50, 3, 52]
-        x = F.relu(self.conv2_bn2(self.conv3(x)))  # [batch, 100, 1, 49]
+        x = F.relu(self.conv2_bn2(self.conv3(x)))  # [batch, 100, 1, 50]
 
         # RNN
         x = x.squeeze(2)
